@@ -4,6 +4,7 @@ function opencode-sandbox() {
   local IMAGE_NAME="opencode-sandbox"
   local PROJECT_STATE_DIR="$PWD/.opencode-sandbox"
   local CONTAINER_NAME="opencode-$(basename "$PWD")"
+  export DOCKER_CLI_HINTS=false
 
   # --- Configuration on first launch ---
   if [[ ! -d "$PROJECT_STATE_DIR" ]]; then
