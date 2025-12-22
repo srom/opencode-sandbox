@@ -27,13 +27,10 @@ function opencode-sandbox() {
   fi
   # ---------------------------------------
 
-  # --- Run container (create if doesn't exist) ---
-  if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    echo "Resuming existing sandbox: $CONTAINER_NAME"
-    docker start -ai "$CONTAINER_NAME"
-  else
+  # --- Run container (ensure it exists and is running) ---
+  if ! docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     echo "Creating new sandbox: $CONTAINER_NAME"
-    docker run -it \
+    docker run -d \
       --name "$CONTAINER_NAME" \
       --hostname "opencode-sandbox" \
       -e USER="$USER" \
@@ -42,8 +39,15 @@ function opencode-sandbox() {
       -v "$PROJECT_STATE_DIR/share:/home/developer/.local/share/opencode" \
       -v "$PROJECT_STATE_DIR/state:/home/developer/.local/state/opencode" \
       -v "$PROJECT_STATE_DIR/cache:/home/developer/.cache/opencode" \
-      $IMAGE_NAME "$@"
-    fi
-    # ---------------------------------------
-}
+      "$IMAGE_NAME" > /dev/null
+  fi
 
+  # Start if stopped (e.g. after reboot)
+  if [[ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null)" != "true" ]]; then
+    echo "Starting sandbox: $CONTAINER_NAME"
+    docker start "$CONTAINER_NAME" > /dev/null
+  fi
+
+  # --- Execute command in the persistent sandbox ---
+  docker exec -it "$CONTAINER_NAME" opencode "$@"
+}

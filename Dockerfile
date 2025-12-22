@@ -43,4 +43,4 @@ ENV PATH="/home/developer/.opencode/bin:${PATH}"
 # Install OpenCode
 RUN curl -fsSL https://opencode.ai/install | bash
 
-ENTRYPOINT ["opencode"]
+ENTRYPOINT ["sleep", "infinity"]
