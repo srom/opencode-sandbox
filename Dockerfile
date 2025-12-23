@@ -5,8 +5,10 @@ FROM node:24-slim
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-# Install essentials
-RUN apt-get update && apt-get install -y \
+# Install essentials and patch security holes
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
     curl git ca-certificates sudo \
     && rm -rf /var/lib/apt/lists/*
 
