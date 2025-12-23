@@ -1,5 +1,5 @@
 # Use a lightweight Debian base with Node.js
-FROM node:20-slim
+FROM node:24-slim
 
 # Add arguments for host UID/GID
 ARG USER_ID=1000
