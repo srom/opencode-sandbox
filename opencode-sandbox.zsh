@@ -50,23 +50,25 @@ function opencode-sandbox() {
   fi
 
   # Extract all {env:VAR} references from config
-  local config_file="$PROJECT_STATE_DIR/config/opencode.json"
   local env_vars=()
+  local config_file="$PROJECT_STATE_DIR/config/opencode.json"
   if [[ -f "$config_file" ]]; then
-    while IFS= read -r line; do
-      if [[ $line =~ \{env:([^}]+)\} ]]; then
-        env_vars+=("${BASH_REMATCH[1]}")
+    while IFS= read -r var; do
+      if [[ -n "$var" ]]; then
+        env_vars+=("$var")
       fi
-    done < "$config_file"
+    # grep extracts tokens -> sed cleans wrappers -> sort -u removes duplicates
+    done < <(grep -o '{env:[^}]*}' "$config_file" 2>/dev/null | sed 's/{env://;s/}//' | sort -u)
   fi
 
   # Pass all found environment variables to docker exec
   local exec_args=()
   for var in "${env_vars[@]}"; do
-    exec_args+=("-e" "$var")
+    if [[ -n "$var" ]]; then
+      exec_args+=("-e" "$var")
+    fi
   done
 
-  # --- Execute command in the persistent sandbox ---
   docker exec \
     "${exec_args[@]}" \
     -it "$CONTAINER_NAME" \
