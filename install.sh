@@ -88,6 +88,10 @@ fi
 BIN_DIR="$INSTALL_DIR/bin"
 mkdir -p "$BIN_DIR"
 
+SOURCE_DIR="$INSTALL_DIR/source"
+rm -r $SOURCE_DIR || true
+mkdir "$SOURCE_DIR"
+
 # Determine source
 if [[ -n "$local_path" ]]; then
     if [[ ! -d "$local_path" ]]; then
@@ -95,7 +99,9 @@ if [[ -n "$local_path" ]]; then
         exit 1
     fi
     echo -e "${MUTED}Installing from local directory: ${NC}$local_path"
-    cp "$local_path/opencode-sandbox.sh" "$INSTALL_DIR/"
+
+    # Move files
+    cp "$local_path/*" "$SOURCE_DIR/"
 else
     echo -e "${MUTED}Downloading latest version from GitHub...${NC}"
     
@@ -107,15 +113,15 @@ else
     curl -fsSL -o "$zip_file" "https://github.com/srom/opencode-sandbox/archive/refs/heads/main.zip"
     unzip -q "$zip_file" -d "$tmp_dir"
     
-    # Move the file
-    cp "$tmp_dir/opencode-sandbox-main/opencode-sandbox.sh" "$INSTALL_DIR/"
+    # Move files
+    cp "$tmp_dir/opencode-sandbox-main/*" "$SOURCE_DIR/"
 fi
 
 # Create entry point script
 cat > "$BIN_DIR/$APP" << EOF
 #!/usr/bin/env bash
 set -euo pipefail
-source "$INSTALL_DIR/opencode-sandbox.sh"
+source "$SOURCE_DIR/opencode-sandbox.sh"
 opencode-sandbox "\$@"
 EOF
 
