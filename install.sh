@@ -89,7 +89,7 @@ BIN_DIR="$INSTALL_DIR/bin"
 mkdir -p "$BIN_DIR"
 
 SOURCE_DIR="$INSTALL_DIR/source"
-rm -r $SOURCE_DIR || true
+[ -d "$SOURCE_DIR" ] && rm -r $SOURCE_DIR
 mkdir "$SOURCE_DIR"
 
 # Determine source
@@ -101,7 +101,7 @@ if [[ -n "$local_path" ]]; then
     echo -e "${MUTED}Installing from local directory: ${NC}$local_path"
 
     # Move files
-    cp "$local_path/*" "$SOURCE_DIR/"
+    cp -r "$local_path/." "$SOURCE_DIR/"
 else
     echo -e "${MUTED}Downloading latest version from GitHub...${NC}"
     
@@ -114,7 +114,7 @@ else
     unzip -q "$zip_file" -d "$tmp_dir"
     
     # Move files
-    cp "$tmp_dir/opencode-sandbox-main/*" "$SOURCE_DIR/"
+    cp -r "$tmp_dir/opencode-sandbox-main/." "$SOURCE_DIR/"
 fi
 
 # Create entry point script
