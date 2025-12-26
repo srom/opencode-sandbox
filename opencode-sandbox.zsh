@@ -29,6 +29,14 @@ function opencode-sandbox() {
   # ---------------------------------------
 
   # --- Run container (ensure it exists and is running) ---
+  if ! docker images -q "$IMAGE_NAME" > /dev/null; then
+    echo "Building Docker image: $IMAGE_NAME"
+    docker build \
+      --build-arg USER_ID=$(id -u) \
+      --build-arg GROUP_ID=$(id -g) \
+      -t "$IMAGE_NAME" .
+  fi
+  
   if ! docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     echo "Creating new sandbox: $CONTAINER_NAME"
     docker run -d \
