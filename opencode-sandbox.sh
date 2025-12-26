@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 function opencode-sandbox() {
   local IMAGE_NAME="opencode-sandbox"
