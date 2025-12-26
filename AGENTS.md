@@ -2,7 +2,7 @@
 
 This project aims to package software opencode (https://opencode.ai/) in a docker container to curtail the risk of AI agents going rogue on one's system.
 
-The idea is to build a Docker container plus a thin layer on top of opencode's TUI to orchestrate the container's lifecycle. The current implementation includes a Dockerfile and a shell function added to .zshrc. 
+The idea is to build a Docker container plus a thin layer on top of opencode's TUI to orchestrate the container's lifecycle. The current implementation includes a Dockerfile and a shell function that serves as a CLI frontend.
 
 Crucially, we ensure that the local docker user has the same user_id and group_id by building the container as follows:
 
