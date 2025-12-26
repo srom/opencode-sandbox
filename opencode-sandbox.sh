@@ -31,10 +31,12 @@ function opencode-sandbox() {
   # --- Run container (ensure it exists and is running) ---
   if ! docker images -q "$IMAGE_NAME" > /dev/null; then
     echo "Building Docker image: $IMAGE_NAME"
+    local source_dir=$(realpath "$(dirname "$(which ocs)")/../source")
     docker build \
       --build-arg USER_ID=$(id -u) \
       --build-arg GROUP_ID=$(id -g) \
-      -t "$IMAGE_NAME" .
+      -t "$IMAGE_NAME" \
+      "$source_dir"
   fi
   
   if ! docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
