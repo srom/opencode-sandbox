@@ -4,7 +4,13 @@ This project packages opencode in a docker container to curtail the risk of AI g
 
 At the moment it is made of one `Dockerfile` and a cli frontend implemented as a shell function.
 
-Usage:
+## Installation
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/srom/opencode-sandbox/refs/heads/main/install.sh | bash
+```
+
+## Usage
 
 ```sh
 cd my-project
