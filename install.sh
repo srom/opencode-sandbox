@@ -120,7 +120,7 @@ fi
 # Create entry point script
 cat > "$BIN_DIR/$APP" << EOF
 #!/usr/bin/env bash
-set -euo pipefail
+set -e
 source "$SOURCE_DIR/opencode-sandbox.sh"
 opencode-sandbox "\$@"
 EOF
