@@ -2,6 +2,7 @@
 
 function opencode-sandbox() {
   local XDG_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+  local XDG_DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
   local IMAGE_NAME_FILE="$XDG_CONFIG/opencode-sandbox/image_name"
   local IMAGE_NAME="opencode-sandbox"
 
@@ -18,32 +19,56 @@ function opencode-sandbox() {
   local CONTAINER_NAME=""
   local CONTAINER_NAME_FILE="$PROJECT_STATE_DIR/container_name"
 
-  # --- Configuration on first launch ---
-  if [[ ! -d "$PROJECT_STATE_DIR" ]]; then
-    echo -e ""
-    echo -e "  ${ORANGE}OpenCode Container Sandbox${NC}"
-    echo -e "  --------------------------"
-    echo -e "  • Access restricted to current working directory ONLY: $PWD"
-    echo -e "  • System data will be stored in local folder $PROJECT_STATE_DIR"
-    echo -e ""
-    
-    read -p "  Initialize sandbox and proceed? [y/N] " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-      echo -e "${MUTED}  Aborted.${NC}"
-      return 1
-    else
-      mkdir -p "$PROJECT_STATE_DIR/config" \
-               "$PROJECT_STATE_DIR/share" \
-               "$PROJECT_STATE_DIR/state" \
-               "$PROJECT_STATE_DIR/cache"
+    # --- Configuration on first launch ---
+    if [[ ! -d "$PROJECT_STATE_DIR" ]]; then
+      echo -e ""
+      echo -e "  ${ORANGE}OpenCode Container Sandbox${NC}"
+      echo -e "  --------------------------"
+      echo -e "  • Access restricted to current working directory ONLY: $PWD"
+      echo -e "  • System data will be stored in local folder $PROJECT_STATE_DIR"
+      echo -e ""
       
-      # Generate unique container name on first launch
-      local slug=$(head -c 500 /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 6)
-      CONTAINER_NAME="opencode-$(basename "$PWD")-$slug"
-      echo "$CONTAINER_NAME" > "$CONTAINER_NAME_FILE"
-    fi
-    echo "\n"
+      # Check if existing opencode config and auth files exist and offer to migrate
+      local existing_config="$XDG_CONFIG/opencode/opencode.json"
+      local existing_auth="$XDG_DATA/opencode/auth.json"
+      
+      if [[ -f "$existing_config" ]]; then
+        echo -e "${ORANGE}Found existing opencode config:${NC} $existing_config"
+        read -p "  Move to $PROJECT_STATE_DIR/config/opencode.json? [Y/n] " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ || -z "$REPLY" ]]; then
+          cp "$existing_config" "$PROJECT_STATE_DIR/config/opencode.json"
+          echo -e "${MUTED}  Moved config.${NC}"
+        fi
+      fi
+      
+      if [[ -f "$existing_auth" ]]; then
+        echo -e "${ORANGE}Found existing opencode auth file:${NC} $existing_auth"
+        read -p "  Move to $PROJECT_STATE_DIR/share/auth.json? [Y/n] " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ || -z "$REPLY" ]]; then
+          cp "$existing_auth" "$PROJECT_STATE_DIR/share/auth.json"
+          echo -e "${MUTED}  Moved auth file.${NC}"
+        fi
+      fi
+      
+      read -p "  Initialize sandbox and proceed? [y/N] " -n 1 -r
+      echo ""
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${MUTED}  Aborted.${NC}"
+        return 1
+      else
+        mkdir -p "$PROJECT_STATE_DIR/config" \
+                 "$PROJECT_STATE_DIR/share" \
+                 "$PROJECT_STATE_DIR/state" \
+                 "$PROJECT_STATE_DIR/cache"
+        
+        # Generate unique container name on first launch
+        local slug=$(head -c 500 /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 6)
+        CONTAINER_NAME="opencode-$(basename "$PWD")-$slug"
+        echo "$CONTAINER_NAME" > "$CONTAINER_NAME_FILE"
+      fi
+      echo "\n"
   fi
 
   # Load container name if not already set (for existing sandboxes)
