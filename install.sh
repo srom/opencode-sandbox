@@ -132,6 +132,17 @@ XDG_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
 CONFIG_DIR="$XDG_CONFIG/opencode-sandbox"
 mkdir -p "$CONFIG_DIR"
 
+# Cleanup previous image
+IMAGE_NAME_FILE="$CONFIG_DIR/image_name"
+if [ -f "$IMAGE_NAME_FILE" ]; then
+    PREV_IMAGE=$(cat "$IMAGE_NAME_FILE")
+    if [ -n "$PREV_IMAGE" ]; then
+        echo -e "${MUTED}Removing previous image: ${NC}$PREV_IMAGE"
+        # We use '|| true' to ensure the script doesn't exit if deletion fails
+        docker image rm "$PREV_IMAGE" 2>/dev/null || true
+    fi
+fi
+
 SLUG=$(LC_ALL=C tr -dc 'a-z0-h' < /dev/urandom | head -c 6)
 IMAGE_NAME="opencode-sandbox-$SLUG"
 
@@ -142,7 +153,7 @@ docker build \
     -t "$IMAGE_NAME" \
     "$SOURCE_DIR"
 
-echo "$IMAGE_NAME" > "$CONFIG_DIR/image_name"
+echo "$IMAGE_NAME" > "$IMAGE_NAME_FILE"
 
 # Add to PATH in shell profile
 current_shell=$(basename "$SHELL")
