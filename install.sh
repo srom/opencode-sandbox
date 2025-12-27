@@ -143,7 +143,7 @@ if [ -f "$IMAGE_NAME_FILE" ]; then
     fi
 fi
 
-SLUG=$(LC_ALL=C tr -dc 'a-z0-h' < /dev/urandom | head -c 6)
+SLUG=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c 6)
 IMAGE_NAME="opencode-sandbox-$SLUG"
 
 echo -e "${MUTED}Building Docker image: ${NC}$IMAGE_NAME"
