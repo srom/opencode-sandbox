@@ -28,30 +28,6 @@ function opencode-sandbox() {
       echo -e "  • System data will be stored in local folder $PROJECT_STATE_DIR"
       echo -e ""
       
-      # Check if existing opencode config and auth files exist and offer to migrate
-      local existing_config="$XDG_CONFIG/opencode/opencode.json"
-      local existing_auth="$XDG_DATA/opencode/auth.json"
-      
-      if [[ -f "$existing_config" ]]; then
-        echo -e "${ORANGE}Found existing opencode config:${NC} $existing_config"
-        read -p "  Move to $PROJECT_STATE_DIR/config/opencode.json? [Y/n] " -n 1 -r
-        echo ""
-        if [[ $REPLY =~ ^[Yy]$ || -z "$REPLY" ]]; then
-          cp "$existing_config" "$PROJECT_STATE_DIR/config/opencode.json"
-          echo -e "${MUTED}  Moved config.${NC}"
-        fi
-      fi
-      
-      if [[ -f "$existing_auth" ]]; then
-        echo -e "${ORANGE}Found existing opencode auth file:${NC} $existing_auth"
-        read -p "  Move to $PROJECT_STATE_DIR/share/auth.json? [Y/n] " -n 1 -r
-        echo ""
-        if [[ $REPLY =~ ^[Yy]$ || -z "$REPLY" ]]; then
-          cp "$existing_auth" "$PROJECT_STATE_DIR/share/auth.json"
-          echo -e "${MUTED}  Moved auth file.${NC}"
-        fi
-      fi
-      
       read -p "  Initialize sandbox and proceed? [y/N] " -n 1 -r
       echo ""
       if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -69,6 +45,30 @@ function opencode-sandbox() {
         echo "$CONTAINER_NAME" > "$CONTAINER_NAME_FILE"
       fi
       echo "\n"
+
+      local local_config_dir="$PROJECT_STATE_DIR/config"
+      local local_share_dir="$PROJECT_STATE_DIR/share"
+      
+      # Check if existing opencode config files exist and move them over if they do.
+      local existing_config=$(ls "$XDG_CONFIG/opencode/opencode".json{,c} 2>/dev/null | head -n 1)
+      local existing_agent="$XDG_CONFIG/opencode/agent"
+      local existing_auth="$XDG_DATA/opencode/auth.json"
+      
+      if [[ -n "$existing_config" ]]; then
+        echo -e "${MUTED}Copying existing opencode config from ${NC}$existing_config ${MUTED}to ${NC}${local_config_dir}/"
+        cp "${existing_config}" "${local_config_dir}/"
+      fi
+
+      if [[ -d "$existing_agent" ]]; then
+        mkdir -p "${local_config_dir}/agent"
+        echo -e "${MUTED}Copying existing agent config from ${NC}$existing_agent ${MUTED}to ${NC}${local_config_dir}/agent"
+        cp -r "${existing_agent}/." "${local_config_dir}/agent/"
+      fi
+      
+      if [[ -f "$existing_auth" ]]; then
+        echo -e "${MUTED}Copying existing auth config from${NC} $existing_auth ${MUTED}to ${NC}$local_share_dir/auth.json"
+        cp "${existing_auth}" "${local_share_dir}/auth.json"
+      fi
   fi
 
   # Load container name if not already set (for existing sandboxes)
@@ -107,8 +107,8 @@ function opencode-sandbox() {
 
   # Extract all {env:VAR} references from config
   local env_vars=()
-  local config_file="$PROJECT_STATE_DIR/config/opencode.json"
-  if [[ -f "$config_file" ]]; then
+  local config_file=$(ls "$PROJECT_STATE_DIR/config/opencode".json{,c} 2>/dev/null | head -n 1)
+  if [[ -n "$config_file" ]]; then
     while IFS= read -r var; do
       if [[ -n "$var" ]]; then
         env_vars+=("$var")
