@@ -10,8 +10,8 @@ function opencode-sandbox() {
   fi
 
   local PROJECT_STATE_DIR="$PWD/.opencode-sandbox"
-  local CONTAINER_NAME="opencode-$(basename "$PWD")"
-  export DOCKER_CLI_HINTS=false
+  local CONTAINER_NAME=""
+  local CONTAINER_NAME_FILE="$PROJECT_STATE_DIR/container_name"
 
   # --- Configuration on first launch ---
   if [[ ! -d "$PROJECT_STATE_DIR" ]]; then
@@ -32,10 +32,21 @@ function opencode-sandbox() {
                "$PROJECT_STATE_DIR/share" \
                "$PROJECT_STATE_DIR/state" \
                "$PROJECT_STATE_DIR/cache"
+      
+      # Generate unique container name on first launch
+      local slug=$(LC_ALL=C tr -dc 'a-z0-h' < /dev/urandom | head -c 6)
+      CONTAINER_NAME="opencode-$(basename "$PWD")-$slug"
+      echo "$CONTAINER_NAME" > "$CONTAINER_NAME_FILE"
     fi
     echo "\n"
   fi
-  # ---------------------------------------
+
+  # Load container name if not already set (for existing sandboxes)
+  if [[ -z "$CONTAINER_NAME" ]]; then
+    CONTAINER_NAME=$(cat "$CONTAINER_NAME_FILE")
+  fi
+
+  export DOCKER_CLI_HINTS=false
 
   # --- Run container (ensure it exists and is running) ---
   if ! docker images -q "$IMAGE_NAME" > /dev/null; then
