@@ -205,6 +205,6 @@ fi
 # Success message
 echo -e ""
 echo -e "${MUTED}$APP installed successfully to: ${NC}$INSTALL_DIR"
-echo -e "${MUTED}Run \"$APP\" in any project directory to start the sandbox."
+echo -e "${MUTED}Run \"$APP\" in any project directory to start the sandbox.${NC}"
 echo -e ""
 echo -e "${MUTED}For more info: https://github.com/srom/opencode-sandbox ${NC}"
