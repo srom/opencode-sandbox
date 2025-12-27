@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo
+set -euo pipefail
 
 APP=ocs
 
@@ -144,7 +144,8 @@ if [ -f "$IMAGE_NAME_FILE" ]; then
 fi
 
 # Generate unique image name
-SLUG=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c 6)
+RAW_SLUG=$(LC_ALL=C head -c 500 /dev/urandom | tr -dc 'a-z0-9')
+SLUG=${RAW_SLUG:0:6}
 IMAGE_NAME="opencode-sandbox-$SLUG"
 
 echo -e "${MUTED}Building Docker image: ${NC}$IMAGE_NAME"

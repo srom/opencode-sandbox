@@ -34,7 +34,8 @@ function opencode-sandbox() {
                "$PROJECT_STATE_DIR/cache"
       
       # Generate unique container name on first launch
-      local slug=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c 6)
+      local raw_slug=$(LC_ALL=C head -c 500 /dev/urandom | tr -dc 'a-z0-9')
+      local slug=${raw_slug:0:6}
       CONTAINER_NAME="opencode-$(basename "$PWD")-$slug"
       echo "$CONTAINER_NAME" > "$CONTAINER_NAME_FILE"
     fi
