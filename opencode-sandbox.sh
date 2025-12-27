@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 
 function opencode-sandbox() {
+  local XDG_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+  local IMAGE_NAME_FILE="$XDG_CONFIG/opencode-sandbox/image_name"
   local IMAGE_NAME="opencode-sandbox"
+
+  if [[ -f "$IMAGE_NAME_FILE" ]]; then
+    IMAGE_NAME=$(cat "$IMAGE_NAME_FILE")
+  fi
+
   local PROJECT_STATE_DIR="$PWD/.opencode-sandbox"
   local CONTAINER_NAME="opencode-$(basename "$PWD")"
   export DOCKER_CLI_HINTS=false
@@ -15,8 +22,10 @@ function opencode-sandbox() {
     echo "  • System data will be stored in local folder $PROJECT_STATE_DIR"
     echo ""
     
-    if ! read -q "REPLY?  Initialize sandbox and proceed? [y/N] "; then
-      echo "\n  Aborted."
+    read -p "  Initialize sandbox and proceed? [y/N] " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "  Aborted."
       return 1
     else
       mkdir -p "$PROJECT_STATE_DIR/config" \
@@ -30,13 +39,9 @@ function opencode-sandbox() {
 
   # --- Run container (ensure it exists and is running) ---
   if ! docker images -q "$IMAGE_NAME" > /dev/null; then
-    echo "Building Docker image: $IMAGE_NAME"
-    local source_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-    docker build \
-      --build-arg USER_ID=$(id -u) \
-      --build-arg GROUP_ID=$(id -g) \
-      -t "$IMAGE_NAME" \
-      "$source_dir"
+    echo -e "\033[0;31mError: Docker image '$IMAGE_NAME' not found.\033[0m"
+    echo "Please run the installation script to build the sandbox image."
+    return 1
   fi
   
   if ! docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then

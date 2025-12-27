@@ -31,7 +31,7 @@ install_dir=""
 no_modify_path=false
 
 # Check dependencies
-for cmd in curl unzip; do
+for cmd in curl unzip docker; do
     if ! command -v $cmd &> /dev/null; then
         echo -e "${RED}Error: Required command '$cmd' is not installed.${NC}"
         exit 1
@@ -127,9 +127,25 @@ EOF
 
 chmod 755 "$BIN_DIR/$APP"
 
+# Build Docker image
+XDG_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+CONFIG_DIR="$XDG_CONFIG/opencode-sandbox"
+mkdir -p "$CONFIG_DIR"
+
+SLUG=$(LC_ALL=C tr -dc 'a-z0-h' < /dev/urandom | head -c 6)
+IMAGE_NAME="opencode-sandbox-$SLUG"
+
+echo -e "${MUTED}Building Docker image: ${NC}$IMAGE_NAME"
+docker build \
+    --build-arg USER_ID=$(id -u) \
+    --build-arg GROUP_ID=$(id -g) \
+    -t "$IMAGE_NAME" \
+    "$SOURCE_DIR"
+
+echo "$IMAGE_NAME" > "$CONFIG_DIR/image_name"
+
 # Add to PATH in shell profile
 current_shell=$(basename "$SHELL")
-XDG_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
 
 case $current_shell in
     fish)
