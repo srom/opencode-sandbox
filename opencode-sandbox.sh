@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 function opencode-sandbox() {
+
   local XDG_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
   local XDG_DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
 
@@ -8,6 +9,30 @@ function opencode-sandbox() {
   local RED='\033[0;31m'
   local ORANGE='\033[38;5;214m'
   local NC='\033[0m'
+
+  # Parse custom environment variable flags (-e VAR)
+  local user_env=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -e)
+        if [[ -n "$2" && "$2" != -* ]]; then
+          user_env+=("$2")
+          shift 2
+          continue
+        else
+          echo -e "${RED}Error: -e requires a value${NC}"
+          return 1
+        fi
+        ;;
+      --)
+        shift
+        break
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
 
   local PROJECT_STATE_DIR="$PWD/.opencode-sandbox"
   local CONTAINER_NAME=""
@@ -120,11 +145,17 @@ function opencode-sandbox() {
   fi
 
   # Pass all found environment variables to docker exec
+  # Include custom -e flags provided by user
   local exec_args=()
   for var in "${env_vars[@]}"; do
     if [[ -n "$var" ]]; then
       exec_args+=("-e" "$var")
     fi
+  done
+  
+  # Add user-provided environment variables
+  for uvar in "${user_env[@]}"; do
+    exec_args+=("-e" "$uvar")
   done
 
   docker exec \
